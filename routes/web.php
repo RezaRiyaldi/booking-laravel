@@ -47,34 +47,34 @@ Route::prefix('/')
 
 Route::prefix('/')
     ->middleware(['auth', 'is.user'])
-    ->group(function(){
+    ->group(function () {
         Route::get('/dashboard-booking-list', [UserDashboardController::class, 'dashboard_booking_list'])
-        ->name('dashboard.booking-list');
+            ->name('dashboard.booking-list');
         Route::get('/room/json', [RoomListController::class, 'json'])
-        ->name('room-list.json');
+            ->name('room-list.json');
         Route::get('/room', [RoomListController::class, 'index'])
-        ->name('room-list.index');
+            ->name('room-list.index');
 
         Route::get('/cars/json', [CarsListController::class, 'json'])
-        ->name('cars-list.json');
+            ->name('cars-list.json');
         Route::get('/cars', [CarsListController::class, 'index'])
-        ->name('cars-list.index');
+            ->name('cars-list.index');
 
         Route::get('/my-booking-list/json', [MyBookingListController::class, 'json'])
-        ->name('my-booking-list.json');
+            ->name('my-booking-list.json');
         Route::get('/my-booking-list', [MyBookingListController::class, 'index'])
-        ->name('my-booking-list.index');
+            ->name('my-booking-list.index');
         Route::get('/my-booking-list/create', [MyBookingListController::class, 'create'])
-        ->name('my-booking-list.create');
+            ->name('my-booking-list.create');
         Route::get('/my-booking-list/create-cars', [MyBookingListController::class, 'create_cars'])
-        ->name('my-booking-list.create-cars');
+            ->name('my-booking-list.create-cars');
         Route::post('/my-booking-list/store', [MyBookingListController::class, 'store'])
-        ->name('my-booking-list.store');
+            ->name('my-booking-list.store');
         Route::post('/my-booking-list/store-cars', [MyBookingListController::class, 'store'])
-        ->name('my-booking-list.store-cars')
-        ->defaults('type', 'cars');
+            ->name('my-booking-list.store-cars')
+            ->defaults('type', 'cars');
         Route::put('/my-booking-list/{id}/cancel', [MyBookingListController::class, 'cancel'])
-        ->name('my-booking-list.cancel');
+            ->name('my-booking-list.cancel');
 
         // Route::get('/mail', function () {
         //     Mail::to('fajarwindhuzulfikar@gmail.com')
@@ -85,32 +85,35 @@ Route::prefix('/')
 
 Route::prefix('admin')
     ->middleware(['auth', 'is.admin'])
-    ->group(function(){
+    ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])
-        ->name('admin.dashboard');
+            ->name('admin.dashboard');
 
         Route::get('/user/json', [UserController::class, 'json'])
-        ->name('user.json');
+            ->name('user.json');
 
         Route::get('/user/{id}/change-pass', [UserController::class, 'change_pass'])
-        ->name('user.change-pass');
+            ->name('user.change-pass');
 
         Route::put('/user/{id}/update-pass', [UserController::class, 'update_pass'])
-        ->name('user.update-pass');
+            ->name('user.update-pass');
 
         Route::get('/room/json', [RoomController::class, 'json'])
-        ->name('room.json');
+            ->name('room.json');
         Route::get('/cars/json', [CarsController::class, 'json'])
-        ->name('cars.json');
+            ->name('cars.json');
 
         Route::get('/booking-list/json', [BookingListController::class, 'json'])
-        ->name('booking-list.json');
+            ->name('booking-list.json');
 
         Route::get('/booking-list', [BookingListController::class, 'index'])
-        ->name('booking-list.index');
+            ->name('booking-list.index');
 
         Route::put('/booking-list/{id}/update/{value}', [BookingListController::class, 'update'])
-        ->name('booking-list.update');
+            ->name('booking-list.update');
+
+        Route::get('/booking-list/{id}/export', [BookingListController::class, 'exportPdf'])
+            ->name('booking-list.export');
 
         Route::resources([
             'user'          => UserController::class,
@@ -126,17 +129,18 @@ Route::prefix('admin')
 */
 
 $users = [
-    '/', 'admin',
+    '/',
+    'admin',
 ];
 
 foreach ($users as $user) {
     Route::prefix($user)
-    ->middleware(['auth'])
-    ->group(function () use ($user) {
-        if($user == '/') $user = 'user';
-        Route::get('/change-pass', [ChangePassController::class, 'index'])
-        ->name($user.'.change-pass.index');
-        Route::put('/change-pass/update', [ChangePassController::class, 'update'])
-        ->name($user.'.change-pass.update');
-    });
+        ->middleware(['auth'])
+        ->group(function () use ($user) {
+            if ($user == '/') $user = 'user';
+            Route::get('/change-pass', [ChangePassController::class, 'index'])
+                ->name($user . '.change-pass.index');
+            Route::put('/change-pass/update', [ChangePassController::class, 'update'])
+                ->name($user . '.change-pass.update');
+        });
 }

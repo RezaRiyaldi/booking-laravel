@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Jobs\SendEmail;
 use App\Models\Cars;
 use App\Models\Room;
+use Barryvdh\DomPDF\PDF;
 use DataTables;
 use Carbon\Carbon;
 
@@ -118,4 +119,15 @@ class BookingListController extends Controller
         dispatch(new SendEmail($user_email, $user_name, $item->{$type}->name, $item['date'], $item['start_time'], $item['end_time'], $item['purpose'], 'USER', $user_name, 'https://google.com', $status));
         dispatch(new SendEmail($admin_email, $user_name, $item->{$type}->name, $item['date'], $item['start_time'], $item['end_time'], $item['purpose'], 'ADMIN', $admin_name, 'https://google.com', $status));
     }
+
+    public function exportPdf($id, PDF $pdf)
+{
+    $booking = BookingList::with(['room', 'cars', 'user'])->findOrFail($id);
+
+    // Load the PDF template with data
+    $pdf = $pdf->loadView('components.pdf_template', compact('booking'));
+
+    // Return the generated PDF as a download
+    return $pdf->download('booking_details_' . $booking->id . '.pdf');
+}
 }

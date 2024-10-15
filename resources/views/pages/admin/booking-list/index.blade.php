@@ -153,6 +153,20 @@
                                 '<div class="bullet"></div>';
                             }
 
+                            if (row.status === 'DISETUJUI') {
+                                result += '<div class="bullet"></div>';
+
+                                result += ' <a href="javascript:;" data-id="' + row.booking_id +
+                                    '" ' +
+                                    ' data-title="Cetak"' +
+                                    ' data-body="Yakin cetak booking ini?"' +
+                                    ' data-value="1"' +
+                                    ' class="text-success"' +
+                                    ' id="print-btn"' +
+                                    ' name="print-btn">Cetak' +
+                                    ' </a>';
+                            }
+
                             +
                             '</div>';
 
@@ -211,6 +225,20 @@
                                     ' name="deny-btn">Tolak' +
                                     ' </a>'; +
                                 '<div class="bullet"></div>';
+                            }
+
+                            if (row.status === 'DISETUJUI') {
+                                result += '<div class="bullet"></div>';
+
+                                result += ' <a href="javascript:;" data-id="' + row.booking_id +
+                                    '" ' +
+                                    ' data-title="Cetak"' +
+                                    ' data-body="Yakin cetak booking ini?"' +
+                                    ' data-value="1"' +
+                                    ' class="text-success"' +
+                                    ' id="print-btn"' +
+                                    ' name="print-btn">Cetak' +
+                                    ' </a>';
                             }
 
                             +
@@ -283,7 +311,25 @@
                 $('#confirm-form').attr('action', '/admin/booking-list/' + id + '/update/' + value);
                 $('#confirm-form').attr('method', 'POST');
                 $('#submit-btn').attr('class', submit_btn_class);
+                $('#confirm-form').attr('target', '');
                 $('#lara-method').attr('value', 'put');
+                $('#confirm-modal').modal('show');
+            });
+
+            $(document).on('click', '#print-btn', function() {
+                var id = $(this).data('id');
+                var title = $(this).data('title');
+                var body = $(this).data('body');
+                var value = $(this).data('value');
+
+                var submit_btn_class = (value === 1) ? 'btn btn-primary' : 'btn btn-danger';
+
+                $('.modal-title').html(title);
+                $('.modal-body').html(body);
+                $('#confirm-form').attr('action', '/admin/booking-list/' + id + '/export');
+                $('#confirm-form').attr('method', 'GET');
+                $('#confirm-form').attr('target', '_blank');
+                $('#submit-btn').attr('class', submit_btn_class);
                 $('#confirm-modal').modal('show');
             });
 
