@@ -87,6 +87,9 @@ class BookingListController extends Controller
             return redirect()->route('booking-list.index');
         }
 
+        $data['approved_by'] = Auth::user()->id;
+        $data['approval_date'] = $now;
+
         if ($item['date'] > $today || ($item['date'] == $today && $item['start_time'] > $now)) {
             if ($data['status'] == 'DISETUJUI') {
                 if ($isAvailable) {
@@ -121,13 +124,15 @@ class BookingListController extends Controller
     }
 
     public function exportPdf($id, PDF $pdf)
-{
-    $booking = BookingList::with(['room', 'cars', 'user'])->findOrFail($id);
+    {
+        $booking = BookingList::with(['room', 'cars', 'user', 'approver'])->findOrFail($id);
 
-    // Load the PDF template with data
-    $pdf = $pdf->loadView('components.pdf_template', compact('booking'));
+        // dd($booking, $booking->passenger_phone);
+        // Load the PDF template with data
+        $pdf = $pdf->loadView('components.pdf_template', compact('booking'))
+            ->setPaper('a4', 'landscape');;
 
-    // Return the generated PDF as a download
-    return $pdf->download('booking_details_' . $booking->id . '.pdf');
-}
+        // Return the generated PDF as a download
+        return $pdf->download('booking_details_' . $booking->id . '.pdf');
+    }
 }
