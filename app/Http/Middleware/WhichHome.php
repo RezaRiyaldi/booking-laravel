@@ -16,9 +16,9 @@ class WhichHome
      */
     public function handle($request, Closure $next)
     {
-        if(Auth::user() && (Auth::user()->role == 'USER'))
+        if (Auth::user() && (in_array(Auth::user()->role, ['USER', 'MANAGER'])))
             return $next($request);
-        elseif(Auth::user() && (Auth::user()->role == 'ADMIN'))
+        elseif (Auth::user() && (in_array(Auth::user()->role, ['ADMIN', 'MANAGER'])))
             return redirect('/admin');
         return response('Unauthorized. <a href="javascript:history.back()">Go Back</a>', 401);
     }

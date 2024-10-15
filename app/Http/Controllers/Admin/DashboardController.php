@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\BookingList;
+use App\Models\Cars;
 use App\Models\Room;
 use App\Models\User;
 
@@ -23,6 +24,7 @@ class DashboardController extends Controller
         $booking_list_expired   = BookingList::where('status', 'EXPIRED')->count();
 
         $room                   = Room::all()->count();
+        $cars                   = Cars::all()->count();
         $user                   = User::where('ROLE', 'USER')->count();
 
         return view('pages.admin.dashboard', [
@@ -35,6 +37,7 @@ class DashboardController extends Controller
             'booking_list_batal'        => $booking_list_batal,
             'booking_list_expired'      => $booking_list_expired,
             'room'                      => $room,
+            'cars'                      => $cars,
             'user'                      => $user,
         ]);
     }

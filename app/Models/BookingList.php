@@ -22,7 +22,17 @@ class BookingList extends Model
         'start_time',
         'end_time',
         'purpose',
-        'status'
+        'status',
+        'applicant_name',
+        'applicant_phone',
+        'dept',
+        'passenger_name',
+        'passenger_phone',
+        'is_overtime',
+        'destination',
+        'cars_id',
+        'approved_by',
+        'approval_date'
     ];
 
     /**
@@ -30,15 +40,25 @@ class BookingList extends Model
      *
      * @var array
      */
-    protected $hidden = [
-        
-    ];
+    protected $hidden = [];
 
-    public function room(){
+    public function room()
+    {
         return $this->hasOne(Room::class, 'id', 'room_id');
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->hasOne(User::class, 'id', 'user_id');
+    }
+
+    public function cars()
+    {
+        return $this->belongsTo(Cars::class, 'cars_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

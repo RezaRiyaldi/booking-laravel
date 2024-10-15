@@ -10,8 +10,9 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\BookingListController;
-
+use App\Http\Controllers\Admin\CarsController;
 use App\Http\Controllers\ChangePassController;
+use App\Http\Controllers\User\CarsListController;
 
 // use Illuminate\Support\Facades\Mail;
 
@@ -30,15 +31,15 @@ Auth::routes(['register' => false, 'reset' => false, 'verify' => false]);
 
 Route::prefix('/')
     ->get('/', [UserDashboardController::class, 'index'])
-    /* 
+    /*
     |--------------------------------------------------------------------------
     | Which Home Middleware
     |--------------------------------------------------------------------------
     | Which home middleware to support one login page for multiple user
-    | because static var HOME which is the destnation after user login is '/'. 
-    | It is checking user's role, user or admin. if someone login with 
-    | user role then redirect to '/' or user's dashboard and that's it. but if  
-    | the role is admin then first go to '/' which is user's dashboard and then 
+    | because static var HOME which is the destnation after user login is '/'.
+    | It is checking user's role, user or admin. if someone login with
+    | user role then redirect to '/' or user's dashboard and that's it. but if
+    | the role is admin then first go to '/' which is user's dashboard and then
     | redirect to '/admin' or admin's dashboard.
     */
     ->middleware(['auth', 'which.home'])
@@ -54,14 +55,24 @@ Route::prefix('/')
         Route::get('/room', [RoomListController::class, 'index'])
         ->name('room-list.index');
 
+        Route::get('/cars/json', [CarsListController::class, 'json'])
+        ->name('cars-list.json');
+        Route::get('/cars', [CarsListController::class, 'index'])
+        ->name('cars-list.index');
+
         Route::get('/my-booking-list/json', [MyBookingListController::class, 'json'])
         ->name('my-booking-list.json');
         Route::get('/my-booking-list', [MyBookingListController::class, 'index'])
         ->name('my-booking-list.index');
         Route::get('/my-booking-list/create', [MyBookingListController::class, 'create'])
         ->name('my-booking-list.create');
+        Route::get('/my-booking-list/create-cars', [MyBookingListController::class, 'create_cars'])
+        ->name('my-booking-list.create-cars');
         Route::post('/my-booking-list/store', [MyBookingListController::class, 'store'])
         ->name('my-booking-list.store');
+        Route::post('/my-booking-list/store-cars', [MyBookingListController::class, 'store'])
+        ->name('my-booking-list.store-cars')
+        ->defaults('type', 'cars');
         Route::put('/my-booking-list/{id}/cancel', [MyBookingListController::class, 'cancel'])
         ->name('my-booking-list.cancel');
 
@@ -89,6 +100,8 @@ Route::prefix('admin')
 
         Route::get('/room/json', [RoomController::class, 'json'])
         ->name('room.json');
+        Route::get('/cars/json', [CarsController::class, 'json'])
+        ->name('cars.json');
 
         Route::get('/booking-list/json', [BookingListController::class, 'json'])
         ->name('booking-list.json');
@@ -102,12 +115,13 @@ Route::prefix('admin')
         Route::resources([
             'user'          => UserController::class,
             'room'          => RoomController::class,
+            'cars'          => CarsController::class,
         ]);
     });
 
-/* 
+/*
 | So basically we have 2 users here, USER and ADMIN. USER prefix is '/'
-| and ADMIN prefix is 'admin'. Here we have change password feature that 
+| and ADMIN prefix is 'admin'. Here we have change password feature that
 | can be used by either USER nor ADMIN.
 */
 

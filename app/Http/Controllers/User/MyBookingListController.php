@@ -16,19 +16,23 @@ use App\Models\User;
 use App\Jobs\SendEmail;
 
 use App\Http\Requests\User\MyBookingListRequest;
-
+use App\Models\Cars;
 use DataTables;
 
 class MyBookingListController extends Controller
 {
-    public function json(){
+    public function json()
+    {
         $data = BookingList::where('user_id', Auth::user()->id)->with([
-            'room'
-        ]);
+            'room',
+            'cars'
+        ])
+            ->select('*', 'booking_lists.id as booking_id')
+            ->get();
 
         return DataTables::of($data)
-        ->addIndexColumn()
-        ->make(true);
+            ->addIndexColumn()
+            ->make(true);
     }
 
     /**
@@ -54,6 +58,14 @@ class MyBookingListController extends Controller
             'rooms' => $rooms,
         ]);
     }
+    public function create_cars()
+    {
+        $cars = Cars::orderBy('name')->get();
+
+        return view('pages.user.my-booking-list.create-cars', [
+            'cars' => $cars,
+        ]);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -61,68 +73,57 @@ class MyBookingListController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(MyBookingListRequest $request)
+    public function store(MyBookingListRequest $request, $type = 'room')
     {
         $data               = $request->all();
         $data['user_id']    = Auth::user()->id;
         $data['status']     = 'PENDING';
 
-        $room               = Room::select('name')->where('id', $data['room_id'])->firstOrFail();
+        $vehicleType = ($type === 'cars') ? 'cars_id' : 'room_id';
+        $vehicleModel = ($type === 'cars') ? Cars::class : Room::class;
+        $vehicle = $vehicleModel::select('name')->where('id', $data[$vehicleType])->firstOrFail();
 
-        if(
-            BookingList::where([
-                ['date', '=', $data['date']],
-                ['room_id', '=', $data['room_id']],
-                ['status', '=', 'DISETUJUI'],
-            ])
-            ->whereBetween('start_time', [$data['start_time'], $data['end_time']])
-            ->count() <= 0 || 
-            BookingList::where([
-                ['date', '=', $data['date']],
-                ['room_id', '=', $data['room_id']],
-                ['status', '=', 'DISETUJUI'],
-            ])
-            ->whereBetween('end_time', [$data['start_time'], $data['end_time']])
-            ->count() <= 0 ||
-            BookingList::where([
-                ['date', '=', $data['date']],
-                ['room_id', '=', $data['room_id']],
-                ['start_time', '<=', $data['start_time']],
-                ['end_time', '>=', $data['end_time']],
-                ['status', '=', 'DISETUJUI'],
-            ])->count() <= 0
-        ) {
-            if(BookingList::create($data)) {
-                $request->session()->flash('alert-success', 'Booking ruang '.$room->name.' berhasil ditambahkan');
-                
-                $user_name          = $this->getUserName();
-                $user_email         = $this->getUserEmail();
-                
-                $admin      = $this->getAdminData();
-                $status     = 'DIBUAT';
+        $isAvailable = BookingList::where([
+            ['date', '=', $data['date']],
+            [$vehicleType, '=', $data[$vehicleType]],
+            ['status', '=', 'DISETUJUI']
+        ])
+            ->where(function ($query) use ($data) {
+                $query->whereBetween('start_time', [$data['start_time'], $data['end_time']])
+                    ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
+                    ->orWhere([
+                        ['start_time', '<=', $data['start_time']],
+                        ['end_time', '>=', $data['end_time']]
+                    ]);
+            })
+            ->count() <= 0;
 
-                $to_role    = 'USER';
+        if ($isAvailable) {
+            if (BookingList::create($data)) {
+                $request->session()->flash('alert-success', "Booking {$vehicle->name} berhasil ditambahkan");
 
-                // use URL::to('/') for the url value
-
-                // URL::to('/my-booking-list)
-                dispatch(new SendEmail($user_email, $user_name, $room->name, $data['date'], $data['start_time'], $data['end_time'], $data['purpose'], $to_role, $user_name, 'https://google.com', $status));
-
-                $to_role    = 'ADMIN';
-
-                // URL::to('/admin/booking-list)
-                dispatch(new SendEmail($admin->email, $user_name, $room->name, $data['date'], $data['start_time'], $data['end_time'], $data['purpose'], $to_role, $admin->name, 'https://google.com', $status));
-
+                $this->sendEmails($data, $vehicle->name, $type);
             } else {
-                $request->session()->flash('alert-failed', 'Booking ruang '.$room->name.' gagal ditambahkan');
-                return redirect()->route('my-booking-list.create');
+                $request->session()->flash('alert-failed', "Booking {$vehicle->name} gagal ditambahkan");
+                return redirect()->route("my-booking-list.create-$type");
             }
         } else {
-            $request->session()->flash('alert-failed', 'Ruangan '.$room->name.' di waktu itu sudah dibooking');
-            return redirect()->route('my-booking-list.create');
+            $request->session()->flash('alert-failed', "{$vehicle->name} di waktu itu sudah dibooking");
+            return redirect()->route("my-booking-list.create-$type");
         }
 
         return redirect()->route('my-booking-list.index');
+    }
+
+    private function sendEmails($data, $vehicleName, $type)
+    {
+        $user_name  = $this->getUserName();
+        $user_email = $this->getUserEmail();
+        $admin      = $this->getAdminData();
+        $status     = 'DIBUAT';
+
+        dispatch(new SendEmail($user_email, $user_name, $vehicleName, $data['date'], $data['start_time'], $data['end_time'], $data['purpose'], 'USER', $user_name, 'https://google.com', $status));
+        dispatch(new SendEmail($admin->email, $user_name, $vehicleName, $data['date'], $data['start_time'], $data['end_time'], $data['purpose'], 'ADMIN', $admin->name, 'https://google.com', $status));
     }
 
     /**
@@ -134,13 +135,21 @@ class MyBookingListController extends Controller
      */
     public function cancel($id)
     {
+        $type = 'room';
         $item           = BookingList::findOrFail($id);
         $data['status'] = 'BATAL';
 
-        $room               = Room::select('name')->where('id', $item->room_id)->firstOrFail();
 
-        if($item->update($data)) {
-            session()->flash('alert-success', 'Booking Ruang '.$room->name.' berhasil dibatalkan');
+        if ($item->cars_id != NULL) {
+            $type = 'cars';
+        }
+
+        $vehicleModel = ($type === 'cars') ? Cars::class : Room::class;
+        $vehicleType = ($type === 'cars') ? 'cars_id' : 'room_id';
+        $vehicle = $vehicleModel::select('name')->where('id', $item->{$vehicleType})->firstOrFail();
+
+        if ($item->update($data)) {
+            session()->flash('alert-success', 'Booking ' . $vehicle->name . ' berhasil dibatalkan');
 
             $user_name          = $this->getUserName();
             $user_email         = $this->getUserEmail();
@@ -150,28 +159,30 @@ class MyBookingListController extends Controller
 
             $to_role    = 'USER';
 
-            dispatch(new SendEmail($user_email, $user_name, $room->name, $item->date, $item->start_time, $item->end_time, $item->purpose, $to_role, $user_name, 'https://google.com', $status));
-            
+            dispatch(new SendEmail($user_email, $user_name, $vehicle->name, $item->date, $item->start_time, $item->end_time, $item->purpose, $to_role, $user_name, 'https://google.com', $status));
+
             $to_role    = 'ADMIN';
 
-            dispatch(new SendEmail($admin->email, $user_name, $room->name, $item->date, $item->start_time, $item->end_time, $item->purpose, $to_role, $admin->name, 'https://google.com', $status));
-            
+            dispatch(new SendEmail($admin->email, $user_name, $vehicle->name, $item->date, $item->start_time, $item->end_time, $item->purpose, $to_role, $admin->name, 'https://google.com', $status));
         } else {
-            session()->flash('alert-failed', 'Booking Ruang '.$room->name.' gagal dibatalkan');
+            session()->flash('alert-failed', 'Booking ' . $vehicle->name . ' gagal dibatalkan');
         }
-        
+
         return redirect()->route('my-booking-list.index');
     }
 
-    public function getAdminData() {
-        return User::select('name','email')->where('role', 'ADMIN')->firstOrFail();
+    public function getAdminData()
+    {
+        return User::select('name', 'email')->where('role', 'ADMIN')->firstOrFail();
     }
 
-    public function getUserName() {
+    public function getUserName()
+    {
         return Auth::user()->name;
     }
 
-    public function getUserEmail() {
+    public function getUserEmail()
+    {
         return Auth::user()->email;
     }
 }

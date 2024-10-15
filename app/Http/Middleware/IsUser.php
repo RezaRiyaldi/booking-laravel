@@ -16,7 +16,7 @@ class IsUser
      */
     public function handle($request, Closure $next)
     {
-        if(Auth::user() && (Auth::user()->role == 'USER'))
+        if(Auth::user() && (in_array(Auth::user()->role, ['USER', 'MANAGER'])))
             return $next($request);
         return response('Unauthorized. <a href="javascript:history.back()">Go Back</a>', 401);
     }

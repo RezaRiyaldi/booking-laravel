@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $data = BookingList::where('user_id', Auth::user()->id)
         ->whereDate('created_at', '=', $today)
         ->with([
-            'room'
+            'room', 'cars'
         ])->take(3);
 
         return DataTables::of($data)

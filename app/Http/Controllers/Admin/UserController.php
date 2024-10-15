@@ -16,7 +16,7 @@ use DataTables;
 class UserController extends Controller
 {
     public function json(){
-        $data = User::where('role', 'USER');
+        $data = User::all();
 
         return DataTables::of($data)
         ->addIndexColumn()
@@ -53,7 +53,7 @@ class UserController extends Controller
     {
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
-        
+
         if(User::create($data)) {
             $request->session()->flash('alert-success', 'User '.$data['name'].' berhasil ditambahkan');
         } else {
@@ -85,7 +85,7 @@ class UserController extends Controller
         $item = User::select('id', 'name', 'description')->where('id', $id)->first();
 
         return view('pages.admin.user.edit', [
-            'item'  => $item 
+            'item'  => $item
         ]);
     }
 
@@ -106,7 +106,7 @@ class UserController extends Controller
         } else {
             $request->session()->flash('alert-failed', 'User '.$data['name'].' gagal diupdate');
         }
-        
+
         return redirect()->route('user.index');
     }
 
@@ -119,7 +119,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         $item = User::findOrFail($id);
-        
+
         if($item->delete()) {
             session()->flash('alert-success', 'User '.$item->name.' berhasil dihapus!');
         } else {
@@ -134,7 +134,7 @@ class UserController extends Controller
         $item = User::select('id', 'name')->where('id', $id)->first();
 
         return view('pages.admin.user.change-pass', [
-            'item'  => $item 
+            'item'  => $item
         ]);
     }
 
@@ -149,7 +149,7 @@ class UserController extends Controller
         } else {
             session()->flash('alert-failed', 'Password User '.$item->name.' gagal diupdate');
         }
-        
+
         return redirect()->route('user.index');
     }
 }
