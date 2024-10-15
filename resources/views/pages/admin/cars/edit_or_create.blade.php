@@ -97,6 +97,8 @@
           @slot('input_label', 'Plat Nomor')
           @slot('input_type', 'text')
           @slot('input_name', 'license_plate')
+          @slot('form_group_class', 'required')
+          @slot('other_attributes', 'required autofocus')
           @isset($item->license_plate)
             @slot('input_value')
               {{ $item->license_plate }}
@@ -111,6 +113,10 @@
           @isset($item)
             @slot('help_text', 'Tidak perlu input foto jika tidak ingin mengeditnya')
           @endisset
+          @empty($item)
+            @slot('form_group_class', 'required')
+            @slot('other_attributes', 'required autofocus')
+          @endempty
       @endcomponent
 
     @endslot

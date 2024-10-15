@@ -88,7 +88,7 @@ class BookingListController extends Controller
         }
 
         $data['approved_by'] = Auth::user()->id;
-        $data['approval_date'] = $now;
+        $data['approval_date'] = date('Y-m-d H:i:s');
 
         if ($item['date'] > $today || ($item['date'] == $today && $item['start_time'] > $now)) {
             if ($data['status'] == 'DISETUJUI') {
