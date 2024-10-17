@@ -3,14 +3,14 @@
 @section('title', 'Ganti Password - ROOMING')
 
 @section('header-title', 'Ganti Password')
-    
+
 @section('breadcrumbs')
   <div class="breadcrumb-item"><a href="#">Setting</a></div>
   <div class="breadcrumb-item active">Ganti Password</div>
 @endsection
 
 @section('section-title', 'Ganti Password ')
-    
+
 @section('section-lead')
   Silakan isi form di bawah ini untuk mengganti password.
 @endsection
@@ -26,7 +26,7 @@
 
     @if (Auth::user()->role == 'USER')
       @slot('form_action', 'user.change-pass.update')
-    @elseif(Auth::user()->role == 'ADMIN')
+    @elseif(in_array(Auth::user()->role, ['ADMIN', 'MANAGER']))
       @slot('form_action', 'admin.change-pass.update')
     @endif
 
@@ -62,7 +62,7 @@
     @slot('card_footer_class', 'text-right')
     @slot('card_footer_content')
       @include('includes.save-cancel-btn')
-    @endslot 
+    @endslot
 
   @endcomponent
 

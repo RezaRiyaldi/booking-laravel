@@ -2,12 +2,12 @@
 
 @section('title')
     Edit Data User - ROOMING
-@endsection 
+@endsection
 
 @section('header-title')
   Edit Data User
-@endsection 
-    
+@endsection
+
 @section('breadcrumbs')
   <div class="breadcrumb-item"><a href="#">User</a></div>
   <div class="breadcrumb-item"><a href="{{ route('user.index') }}">Data User</a></div>
@@ -19,8 +19,8 @@
 
 @section('section-title')
   Edit Data User
-@endsection 
-    
+@endsection
+
 @section('section-lead')
   Silakan isi form di bawah ini untuk mengedit data {{ $item->name }}.
 @endsection
@@ -33,7 +33,7 @@
     @slot('col_class', 'col-12 col-md-6')
 
     @slot('form_method', 'POST')
-    @slot('method_put', 'PUT')
+    @slot('method', 'PUT')
     @slot('form_action', 'user.update')
     @slot('update_id', $item->id)
 
@@ -61,7 +61,7 @@
     @slot('card_footer_class', 'text-right')
     @slot('card_footer_content')
       @include('includes.save-cancel-btn')
-    @endslot 
+    @endslot
 
   @endcomponent
 

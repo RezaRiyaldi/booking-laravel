@@ -1,10 +1,10 @@
 <div class="main-sidebar">
   <aside id="sidebar-wrapper">
     <div class="sidebar-brand">
-      <a href="index.html">ROOMING</a>
+      <a href="/">ROOMING</a>
     </div>
     <div class="sidebar-brand sidebar-brand-sm">
-      <a href="index.html">RM</a>
+      <a href="/">RM</a>
     </div>
     <ul class="sidebar-menu">
       @if (in_array(Auth::user()->role, ['USER', 'MANAGER']))
